@@ -10,44 +10,14 @@ import http from "http";
 import cors from "cors";
 
 const pubsub = new PubSub();
-const questions = [
-  {
-    id: "1",
-    title: "Hangi programlama dilini seviyorsunuz?",
-    options: [
-      { id: "opt1", title: "JavaScript", votes: 10 },
-      { id: "opt2", title: "Python", votes: 5 },
-    ],
-  },
-];
+const questions = [];
 
 const typeDefs = `#graphql
-  type Option {
-    id: ID!
-    title: String!
-    votes: Int!
-  }
-
-  type Question {
-    id: ID!
-    title: String!
-    options: [Option!]!
-  }
-
-  type Query {
-    questions: [Question!]!
-    question(id: ID!): Question
-  }
-
-  type Mutation {
-    createQuestion(title: String!, options: [String!]!): Question
-    vote(optionId: ID!): Question
-  }
-
-  type Subscription {
-    questionCreated: Question
-    voteUpdated: Question
-  }
+  type Option { id: ID!, title: String!, votes: Int! }
+  type Question { id: ID!, title: String!, options: [Option!]! }
+  type Query { questions: [Question!]!, question(id: ID!): Question }
+  type Mutation { createQuestion(title: String!, options: [String!]!): Question, vote(optionId: ID!): Question }
+  type Subscription { questionCreated: Question, voteUpdated: Question }
 `;
 
 const resolvers = {
@@ -74,12 +44,9 @@ const resolvers = {
       const question = questions.find((q) =>
         q.options.some((opt) => opt.id === optionId)
       );
-
       if (!question) throw new Error("Seçenek bulunamadı.");
-
       const option = question.options.find((opt) => opt.id === optionId);
       option.votes += 1;
-
       pubsub.publish("VOTE_UPDATED", { voteUpdated: question });
       return question;
     },
@@ -88,9 +55,7 @@ const resolvers = {
     questionCreated: {
       subscribe: () => pubsub.asyncIterator(["QUESTION_CREATED"]),
     },
-    voteUpdated: {
-      subscribe: () => pubsub.asyncIterator(["VOTE_UPDATED"]),
-    },
+    voteUpdated: { subscribe: () => pubsub.asyncIterator(["VOTE_UPDATED"]) },
   },
 };
 
@@ -122,11 +87,7 @@ const server = new ApolloServer({
 });
 
 await server.start();
-
 app.use("/graphql", cors(), express.json(), expressMiddleware(server));
 
 const PORT = 4000;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Sunucu hazır: http://localhost:${PORT}/graphql`);
-  console.log(`📡 Abonelikler hazır: ws://localhost:${PORT}/graphql`);
-});
+httpServer.listen(PORT);
