@@ -120,6 +120,6 @@ http://localhost:5173
 
 ---
 
-[Patika GraphQL Project-4](https://academy.patika.dev/courses/graphql/project-04)
+[Patika GraphQL Project-3](https://academy.patika.dev/courses/graphql/project-03)
 
 [Patika](https://academy.patika.dev/tr/@alpk)
